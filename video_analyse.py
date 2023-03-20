@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from setting import video_time, stride, frame_rate
+from setting import *
 
 def fragment_videos(in_data_dir, out_data_dir, stride=10, video_time=3):
     '''
@@ -29,7 +29,6 @@ def fragment_videos(in_data_dir, out_data_dir, stride=10, video_time=3):
                 "{out_data_dir}/{index_fragment}.mp4"')
             index_fragment += 1
 
-
 def extract_frames(in_data_dir, out_data_dir, frame_rate=30):
     """
     从给定的视频文件夹in_data_dir中提取视频帧，存储为JPG格式图片到out_data_dir中。
@@ -53,8 +52,7 @@ def extract_frames(in_data_dir, out_data_dir, frame_rate=30):
             os.system(
                 f"ffmpeg -i '{os.path.join(in_data_dir, video)}' -r {frame_rate} -q:v 1 '{out_name}'")
 
-
-def save_key_frames(frames_dir,seconds,start=0,all=False):
+def save_key_frames(in_data_dir,out_data_dir,seconds,start=0,all=False):
     """从frames文件夹中选择指定的图片,按照每秒一帧的频率
 
     Args:
@@ -72,19 +70,19 @@ def save_key_frames(frames_dir,seconds,start=0,all=False):
         num_frames.append(i*30+1)
 
     #遍历./frames
-    for filepath,dirnames,filenames in os.walk(frames_dir):
+    for filepath,dirnames,filenames in os.walk(in_data_dir):
         if all:
             #在key_frames_all下创建对应的目录文件夹
             if len(filenames)!=0:
                 temp_name = filepath.split('/')[-1]
-                path_temp_name = './data/key_frames_all/'+temp_name
-            if not os.path.exists('./data/key_frames_all'):
-                os.makedirs('./data/key_frames_all')
+                path_temp_name = out_data_dir+'_all/'+temp_name
+            if not os.path.exists(out_data_dir+'_all'):
+                os.makedirs(out_data_dir+'_all')
         else:
             #在key_frames下创建对应的目录文件夹
             if len(filenames)!=0:
                 temp_name = filepath.split('/')[-1]
-                path_temp_name = './data/key_frames/'+temp_name
+                path_temp_name = out_data_dir+'/'+temp_name
                 if not os.path.exists(path_temp_name):
                     os.makedirs(path_temp_name)
 
@@ -105,13 +103,20 @@ def save_key_frames(frames_dir,seconds,start=0,all=False):
 
                 srcfile = filepath + '/' + temp_num
                 if all:
-                    dstpath = './data/key_frames_all/' + temp_num
+                    dstpath = out_data_dir+'_all/' + temp_num
                 else:
                     dstpath = path_temp_name + '/' + temp_num
                 # 复制文件
                 shutil.copy(srcfile, dstpath)
 
 def build_YOLO_data(in_data_dir, out_data_dir, interval):
+    """对于视频集进行抽帧，用以构建YOLO的图片集合
+
+    Args:
+        in_data_dir (_type_): 视频集的路径
+        out_data_dir (_type_): 输出图片路径
+        interval (_type_): 在每个视频中抽帧的间隔
+    """
     if not os.path.exists(out_data_dir):
         print(out_data_dir + " doesn't exist. Creating it.")
         os.makedirs(out_data_dir)
@@ -134,9 +139,10 @@ def build_YOLO_data(in_data_dir, out_data_dir, interval):
 
 
 if __name__ == "__main__":
-    fragment_videos('./data/original_videos', './data/fragment_videos', stride=stride, video_time=video_time)
-    extract_frames('./data/fragment_videos', './data/frames', frame_rate=frame_rate)
-    save_key_frames('./data/frames',video_time)
-    save_key_frames('./data/frames',video_time,all=True)
+    fragment_videos(original_video_dir, fragment_video_dir, stride=stride, video_time=video_time)
+    extract_frames(fragment_video_dir, frames_dir, frame_rate=frame_rate)
+    save_key_frames(frames_dir,key_frames_dir,video_time)
+    save_key_frames(frames_dir,key_frames_dir,video_time,all=True)
 
-    # build_YOLO_data("./data/original_videos","./data/yolo_train_data",10)
+    # 通过抽帧构建YOLO需标注数据集，对新的目标需要开启
+    build_YOLO_data(original_video_dir,yolo_without_label_dir,10)

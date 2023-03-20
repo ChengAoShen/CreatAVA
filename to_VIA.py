@@ -5,7 +5,7 @@ import cv2
 from collections import defaultdict
 
 from via3_tool import Via3Json
-from setting import attributes
+from setting import attributes,yolo_data_dir,key_frames_dir,AVA_dic_path,ID_path
 
 
 def YOLO_to_AVA(labelDir, PKL_path,ID_path, show=False):
@@ -237,7 +237,6 @@ def delete_default(path):
 
 
 if __name__ == "__main__":
-    YOLO_to_AVA('./runs/detect/track/labels', './data/AVA.pkl', "./data/id.pkl",True)
-
-    create_via_json("./data/AVA.pkl", "./data/key_frames")
-    delete_default("./data/key_frames")
+    YOLO_to_AVA(yolo_data_dir+'/track/labels', AVA_dic_path, ID_path,True)
+    create_via_json(AVA_dic_path, key_frames_dir)
+    delete_default(key_frames_dir)

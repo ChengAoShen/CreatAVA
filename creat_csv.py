@@ -5,12 +5,13 @@ import cv2
 import pandas as pd
 import pickle
 
+from setting import key_frames_dir,ID_path,train_withoutID_csv,train_csv_path
 
 def json_extract():
     # dict存放最后的json
     dicts = []
     # 通过循环与判断来找出via的json标注文件
-    for root, dirs, files in os.walk("./data/key_frames", topdown=False):
+    for root, dirs, files in os.walk(key_frames_dir, topdown=False):
         for file in files:
             #via的json标注文件以_proposal.json结尾
             if "_finish.json" in file:
@@ -91,14 +92,14 @@ def json_extract():
                                     
                                     dicts.append(dict)
                         index = index + 1
-    with open('./train_without_personID.csv',"w") as csvfile: 
+    with open(train_withoutID_csv,"w") as csvfile: 
         writer = csv.writer(csvfile)
         writer.writerows(dicts)
 
 
 def add_id():
-    table=pd.read_csv("./train_without_personID.csv",header=None) 
-    with open("./data/id.pkl", "rb") as f:
+    table=pd.read_csv(train_withoutID_csv,header=None) 
+    with open(ID_path, "rb") as f:
         info = pickle.load(f, encoding='iso-8859-1')
     id_list=[]
     cout=0
@@ -111,7 +112,7 @@ def add_id():
                 id_list.append(id)
                 # print(f"成功匹配{i}")
                 break
-    table.assign(id=id_list).to_csv("./train_with_personID.csv",header=None,index=False) 
+    table.assign(id=id_list).to_csv(train_csv_path,header=None,index=False) 
 
 if __name__ == '__main__':
     json_extract()
