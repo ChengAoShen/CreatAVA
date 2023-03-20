@@ -1,5 +1,5 @@
 video_time=3 # 视频时长
-stride=10 # 切片视频间隔
+stride=100 # 切片视频间隔
 frame_rate=30 # 抽帧频率
 
 attributes = {'1':dict(aname='head', type=2, options={'0':'talk',

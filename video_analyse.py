@@ -17,9 +17,11 @@ def fragment_videos(in_data_dir, out_data_dir, stride=10, video_time=3):
     if not os.path.exists(out_data_dir):
         print(out_data_dir + " doesn't exist. Creating it.")
         os.makedirs(out_data_dir)
-    
+
     index_fragment = 1
     for video_name in os.listdir(in_data_dir):
+        if video_name.startswith('.'):
+            continue
         video_duration = int(float(os.popen(f'ffprobe -v error -show_entries format=duration \
                 -of default=noprint_wrappers=1:nokey=1 "{in_data_dir}/{video_name}"').read()[:-1]))
         for t in range(0, video_duration, stride):
@@ -109,9 +111,32 @@ def save_key_frames(frames_dir,seconds,start=0,all=False):
                 # 复制文件
                 shutil.copy(srcfile, dstpath)
 
+def build_YOLO_data(in_data_dir, out_data_dir, interval):
+    if not os.path.exists(out_data_dir):
+        print(out_data_dir + " doesn't exist. Creating it.")
+        os.makedirs(out_data_dir)
+
+    index=0
+    for video in os.listdir(in_data_dir):
+        if not video.startswith('.'):
+            video_name = os.path.basename(video)
+        # print(video_name)
+        video_duration = int(float(os.popen(f'ffprobe -v error -show_entries format=duration \
+                -of default=noprint_wrappers=1:nokey=1 "{in_data_dir}/{video_name}"').read()[:-1]))
+        # print(video_duration)
+
+        for t in range(0, video_duration, interval):
+            out_name = os.path.join(out_data_dir, f"{index}.jpg")
+            print(out_name)
+            os.system(
+                f"ffmpeg -ss {t} -i '{os.path.join(in_data_dir, video)}' -y -vframes 1 '{out_name}'")
+            index+=1
+
 
 if __name__ == "__main__":
     fragment_videos('./data/original_videos', './data/fragment_videos', stride=stride, video_time=video_time)
     extract_frames('./data/fragment_videos', './data/frames', frame_rate=frame_rate)
     save_key_frames('./data/frames',video_time)
     save_key_frames('./data/frames',video_time,all=True)
+
+    # build_YOLO_data("./data/original_videos","./data/yolo_train_data",10)
